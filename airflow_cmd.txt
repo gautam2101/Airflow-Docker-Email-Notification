@@ -1,0 +1,780 @@
+AIRFLOW + DOCKER — POWERSHELL COMMAND CHEAT SHEET
+====================================================
+
+Project path:
+C:\Users\hgt\airflow-docker
+
+Project structure:
+airflow-docker/
+├── dags/
+├── logs/
+├── plugins/
+├── config/
+├── .env
+└── docker-compose.yaml
+
+
+1. GO TO AIRFLOW PROJECT
+------------------------
+
+Command:
+cd C:\Users\hgt\airflow-docker
+
+Use case:
+Use this first whenever you open a new VS Code PowerShell terminal and need to work with this Airflow Docker project.
+
+
+2. CHECK DOCKER VERSION
+-----------------------
+
+Command:
+docker --version
+
+Use case:
+Checks whether Docker is installed and available from PowerShell.
+
+
+3. CHECK DOCKER COMPOSE VERSION
+------------------------------
+
+Command:
+docker compose version
+
+Use case:
+Checks whether Docker Compose is installed and available.
+
+
+4. VALIDATE DOCKER COMPOSE CONFIGURATION
+----------------------------------------
+
+Command:
+docker compose config
+
+Use case:
+Validates docker-compose.yaml and resolves variables from .env.
+
+IMPORTANT:
+This command can expand environment variables. Because your Gmail App Password
+is referenced by GMAIL_APP_PASSWORD, do NOT share the complete output publicly.
+
+
+5. INITIALIZE AIRFLOW
+---------------------
+
+Command:
+docker compose up airflow-init
+
+Use case:
+Initializes/migrates the Airflow metadata database.
+
+Expected successful result:
+airflow-init-1 exited with code 0
+
+Run this after creating the project or when initialization is required.
+
+
+6. START AIRFLOW
+----------------
+
+Command:
+docker compose up -d
+
+Use case:
+Starts Airflow and its Docker services in detached/background mode.
+
+Typical services:
+- airflow-api-server
+- airflow-scheduler
+- airflow-worker
+- airflow-triggerer
+- postgres
+- redis
+
+Note:
+The exact service list depends on your docker-compose.yaml.
+
+
+7. CHECK RUNNING CONTAINERS
+---------------------------
+
+Command:
+docker compose ps
+
+Use case:
+Checks whether Airflow, PostgreSQL, Redis, worker, scheduler, etc. are running.
+
+Look for:
+Up
+healthy
+
+
+8. STOP AIRFLOW WITHOUT DELETING DATA
+-------------------------------------
+
+Command:
+docker compose stop
+
+Use case:
+Stops running containers but keeps containers and persistent data.
+
+
+9. START STOPPED AIRFLOW CONTAINERS
+-----------------------------------
+
+Command:
+docker compose start
+
+Use case:
+Starts containers that were previously stopped.
+
+
+10. STOP AND REMOVE CONTAINERS
+------------------------------
+
+Command:
+docker compose down
+
+Use case:
+Stops and removes the Compose containers and network.
+
+IMPORTANT:
+This normally keeps the named PostgreSQL volume/data.
+
+
+11. DELETE CONTAINERS + VOLUMES
+-------------------------------
+
+Command:
+docker compose down -v
+
+Use case:
+Completely removes Compose containers and named volumes.
+
+WARNING:
+Do NOT use this casually.
+It can delete the PostgreSQL volume and your Airflow metadata/database data.
+
+
+12. VIEW WORKER LOGS
+--------------------
+
+Command:
+docker compose logs airflow-worker --tail 100
+
+Use case:
+Shows the last 100 lines from the Airflow worker logs.
+
+Useful for:
+- Task failures
+- Email failures
+- Worker errors
+- Python errors
+
+
+13. FOLLOW WORKER LOGS LIVE
+---------------------------
+
+Command:
+docker compose logs -f airflow-worker
+
+Use case:
+Continuously watches worker logs in real time.
+
+Press:
+Ctrl + C
+
+to stop following logs.
+
+
+14. VIEW SCHEDULER LOGS
+----------------------
+
+Command:
+docker compose logs airflow-scheduler --tail 100
+
+Use case:
+Checks scheduler problems such as DAG parsing, scheduling, or scheduler errors.
+
+
+15. VIEW API SERVER LOGS
+-----------------------
+
+Command:
+docker compose logs airflow-api-server --tail 100
+
+Use case:
+Checks Airflow web/API server problems.
+
+
+16. VIEW ALL SERVICE LOGS
+------------------------
+
+Command:
+docker compose logs --tail 100
+
+Use case:
+Shows recent logs from all Compose services.
+
+Useful when you don't know which service has the problem.
+
+
+17. LIST AIRFLOW DAGS
+--------------------
+
+Command:
+docker compose exec airflow-worker airflow dags list
+
+Use case:
+Checks which DAGs Airflow can see.
+
+Useful when:
+- A DAG doesn't appear in the UI
+- You added a new DAG file
+- You want to confirm DAG discovery
+
+
+18. SEARCH FOR A SPECIFIC DAG
+-----------------------------
+
+Command:
+docker compose exec airflow-worker airflow dags list | Select-String "email_failure_test"
+
+Use case:
+PowerShell command to check whether email_failure_test is loaded.
+
+
+19. TRIGGER A DAG MANUALLY
+--------------------------
+
+Command:
+docker compose exec airflow-worker airflow dags trigger email_failure_test
+
+Use case:
+Manually starts a DAG without waiting for its schedule.
+
+Replace:
+email_failure_test
+
+with your actual DAG ID.
+
+
+20. LIST TASKS IN A DAG
+-----------------------
+
+Command:
+docker compose exec airflow-worker airflow tasks list email_failure_test
+
+Use case:
+Shows tasks defined inside the DAG.
+
+Useful when you need to confirm the task ID before testing it.
+
+
+21. TEST A TASK MANUALLY
+------------------------
+
+Command:
+docker compose exec airflow-worker airflow tasks test email_failure_test failing_task
+
+Use case:
+Runs/tests a specific task directly.
+
+Useful for:
+- Debugging task code
+- Testing a failing task
+- Testing task behavior
+
+Replace:
+email_failure_test = DAG ID
+failing_task = Task ID
+
+
+22. SEARCH WORKER LOGS FOR A DAG
+--------------------------------
+
+Command:
+docker compose logs airflow-worker --tail 200 | Select-String "email_failure_test"
+
+Use case:
+Searches recent worker logs for a specific DAG.
+
+
+23. SEARCH WORKER LOGS FOR A TASK
+---------------------------------
+
+Command:
+docker compose logs airflow-worker --tail 200 | Select-String "failing_task"
+
+Use case:
+Searches recent logs for a specific task.
+
+
+24. SEARCH FOR EMAIL/SMTP ERRORS
+--------------------------------
+
+Command:
+docker compose logs airflow-worker --tail 200 | Select-String -Pattern "SMTP|smtp|email|notification|ERROR|Exception"
+
+Use case:
+Very useful when an Airflow failure email is not received.
+
+Look for:
+- SMTP errors
+- Authentication errors
+- Connection errors
+- Notification errors
+- Task exceptions
+
+
+25. OPEN A BASH SHELL INSIDE AIRFLOW WORKER
+--------------------------------------------
+
+Command:
+docker compose exec airflow-worker bash
+
+Use case:
+Opens a shell inside the running Airflow worker container.
+
+Then you can run commands such as:
+airflow version
+airflow dags list
+airflow connections list
+
+Exit:
+exit
+
+
+26. CHECK AIRFLOW VERSION
+-------------------------
+
+Command:
+docker compose exec airflow-worker airflow version
+
+Use case:
+Confirms the Airflow version running inside the container.
+
+For this project:
+apache/airflow:3.0.6
+
+
+27. CHECK SMTP CONNECTION
+-------------------------
+
+Command:
+docker compose exec airflow-worker airflow connections get smtp_default
+
+Use case:
+Checks whether an smtp_default Airflow connection exists and displays its configuration.
+
+
+28. CHECK SMTP CONNECTION AS JSON
+---------------------------------
+
+Command:
+docker compose exec airflow-worker airflow connections get smtp_default --output json
+
+Use case:
+Displays smtp_default connection details in JSON format.
+
+WARNING:
+Be careful when sharing output because connection details can contain secrets.
+
+
+29. TEST SMTP CONNECTIVITY
+--------------------------
+
+Command:
+docker compose exec airflow-worker python -c "from airflow.providers.smtp.hooks.smtp import SmtpHook; h=SmtpHook(smtp_conn_id='smtp_default'); h.get_conn(); print('SMTP CONNECTION SUCCESS')"
+
+Use case:
+Tests whether Airflow can establish an SMTP connection using smtp_default.
+
+Expected:
+SMTP CONNECTION SUCCESS
+
+IMPORTANT:
+A successful SMTP connection does NOT by itself prove that the complete
+Airflow failure-email workflow works. You should still test a failed DAG.
+
+
+30. CHECK SMTP HOST
+-------------------
+
+Command:
+docker compose exec airflow-worker printenv AIRFLOW__SMTP__SMTP_HOST
+
+Use case:
+Checks the SMTP host configured inside the worker.
+
+Expected for Gmail:
+smtp.gmail.com
+
+
+31. CHECK SMTP PORT
+------------------
+
+Command:
+docker compose exec airflow-worker printenv AIRFLOW__SMTP__SMTP_PORT
+
+Use case:
+Checks the configured SMTP port.
+
+Expected:
+587
+
+
+32. CHECK SMTP USER
+------------------
+
+Command:
+docker compose exec airflow-worker printenv AIRFLOW__SMTP__SMTP_USER
+
+Use case:
+Checks which email account Airflow is configured to use as the SMTP user.
+
+
+33. CHECK SMTP STARTTLS
+----------------------
+
+Command:
+docker compose exec airflow-worker printenv AIRFLOW__SMTP__SMTP_STARTTLS
+
+Use case:
+Checks whether STARTTLS is enabled.
+
+Expected:
+true
+
+
+34. DO NOT PRINT SMTP PASSWORD
+-----------------------------
+
+DO NOT RUN:
+
+docker compose exec airflow-worker printenv AIRFLOW__SMTP__SMTP_PASSWORD
+
+Use case:
+None — avoid this command unless you have a specific secure debugging reason.
+
+Why:
+It exposes your Gmail App Password in the terminal.
+
+
+35. CHECK DAG FILES INSIDE CONTAINER
+------------------------------------
+
+Command:
+docker compose exec airflow-worker ls -la /opt/airflow/dags
+
+Use case:
+Checks whether the DAG files from your local dags/ folder are mounted into the container.
+
+
+36. VIEW A SPECIFIC DAG FILE
+----------------------------
+
+Command:
+docker compose exec airflow-worker cat /opt/airflow/dags/email_failure_test.py
+
+Use case:
+Checks the exact DAG code currently visible inside the worker container.
+
+
+37. TASK LOG FILE
+-----------------
+
+Command:
+docker compose exec airflow-worker cat "/opt/airflow/logs/dag_id=email_failure_test/run_id=YOUR_RUN_ID/task_id=failing_task/attempt=1.log"
+
+Use case:
+Reads the log file for a specific DAG run and task.
+
+Replace:
+YOUR_RUN_ID
+failing_task
+
+
+38. RESTART WORKER
+------------------
+
+Command:
+docker compose restart airflow-worker
+
+Use case:
+Restarts only the Airflow worker.
+
+Useful after:
+- Worker problem
+- Worker configuration change
+
+
+39. RESTART SCHEDULER
+---------------------
+
+Command:
+docker compose restart airflow-scheduler
+
+Use case:
+Restarts only the scheduler.
+
+Useful after:
+- Scheduler issue
+- Scheduler configuration change
+
+
+40. RESTART API SERVER
+----------------------
+
+Command:
+docker compose restart airflow-api-server
+
+Use case:
+Restarts only the Airflow API/web server.
+
+
+41. RESTART ALL SERVICES
+------------------------
+
+Command:
+docker compose restart
+
+Use case:
+Restarts all currently running Compose services.
+
+
+42. AFTER CHANGING docker-compose.yaml
+--------------------------------------
+
+Commands:
+
+docker compose down
+docker compose up -d
+
+Use case:
+Use this when you change service definitions, environment configuration,
+ports, volumes, or other Compose configuration.
+
+Then check:
+
+docker compose ps
+
+
+43. AFTER CHANGING ONLY A DAG
+-----------------------------
+
+Usually no Docker restart is required.
+
+Example:
+
+dags/email_failure_test.py
+
+Save the DAG file and wait for Airflow to detect it.
+
+Then check:
+
+docker compose exec airflow-worker airflow dags list
+
+
+44. CHECK .env WITHOUT SHOWING PASSWORD
+---------------------------------------
+
+Command:
+
+Get-Content .env | Select-String "AIRFLOW_EMAIL"
+
+Use case:
+Checks that the email variable exists without displaying the whole .env file.
+
+
+45. CHECK THAT APP PASSWORD VARIABLE EXISTS
+-------------------------------------------
+
+Command:
+
+Get-Content .env | Select-String "GMAIL_APP_PASSWORD"
+
+Use case:
+Checks that the GMAIL_APP_PASSWORD variable exists.
+
+IMPORTANT:
+Depending on your PowerShell output, this may display the password value.
+Do NOT share the output.
+
+Safer approach:
+Open .env in VS Code and visually confirm the variable is present without
+copying the secret into chat.
+
+
+46. DO NOT SHARE .env
+---------------------
+
+Avoid:
+
+Get-Content .env
+
+Use case:
+None for normal troubleshooting.
+
+Why:
+It displays all environment variables, including secrets such as the
+Gmail App Password.
+
+
+47. REBUILD DOCKER IMAGE
+------------------------
+
+Command:
+
+docker compose build
+
+Use case:
+Rebuilds Docker images when you have a custom Dockerfile/image configuration.
+
+Usually NOT required when you only edit a DAG.
+
+
+48. BUILD AND START
+-------------------
+
+Command:
+
+docker compose up -d --build
+
+Use case:
+Rebuilds required images and starts services in detached mode.
+
+
+49. COMPLETE SMTP TROUBLESHOOTING FLOW
+--------------------------------------
+
+If Airflow failure emails are not working:
+
+Step 1:
+docker compose ps
+
+Purpose:
+Check that Airflow services are running.
+
+
+Step 2:
+docker compose exec airflow-worker airflow connections get smtp_default
+
+Purpose:
+Check SMTP connection configuration.
+
+
+Step 3:
+docker compose exec airflow-worker python -c "from airflow.providers.smtp.hooks.smtp import SmtpHook; h=SmtpHook(smtp_conn_id='smtp_default'); h.get_conn(); print('SMTP CONNECTION SUCCESS')"
+
+Purpose:
+Test SMTP connection.
+
+
+Step 4:
+docker compose exec airflow-worker airflow dags trigger email_failure_test
+
+Purpose:
+Trigger the test DAG.
+
+
+Step 5:
+docker compose logs airflow-worker --tail 200 | Select-String -Pattern "email_failure_test|failing_task|SMTP|smtp|notification|ERROR|Exception"
+
+Purpose:
+Find task and email errors.
+
+
+Step 6:
+Check the Gmail inbox.
+
+Purpose:
+Confirm the complete notification flow.
+
+
+50. COMPLETE NORMAL STARTUP FLOW
+--------------------------------
+
+Use this when you want to work on your Airflow project:
+
+cd C:\Users\hgt\airflow-docker
+
+docker compose up -d
+
+docker compose ps
+
+Then open:
+http://localhost:8080
+
+Then check DAGs:
+
+docker compose exec airflow-worker airflow dags list
+
+
+51. COMPLETE TEST EMAIL FLOW
+----------------------------
+
+Goal:
+Verify that a failed Airflow task sends an email.
+
+Flow:
+
+DAG
+ ↓
+Task
+ ↓
+Task intentionally fails
+ ↓
+Airflow detects failure
+ ↓
+Email notification
+ ↓
+Gmail SMTP
+ ↓
+Your Gmail inbox
+
+
+Commands:
+
+docker compose ps
+
+docker compose exec airflow-worker airflow dags list
+
+docker compose exec airflow-worker airflow dags trigger email_failure_test
+
+docker compose logs airflow-worker --tail 200 | Select-String -Pattern "email_failure_test|failing_task|SMTP|smtp|notification|ERROR|Exception"
+
+Then check Gmail.
+
+
+52. DAILY QUICK COMMANDS
+------------------------
+
+Go to project:
+cd C:\Users\hgt\airflow-docker
+
+Start:
+docker compose up -d
+
+Check:
+docker compose ps
+
+DAG list:
+docker compose exec airflow-worker airflow dags list
+
+Trigger:
+docker compose exec airflow-worker airflow dags trigger <dag_id>
+
+Worker logs:
+docker compose logs airflow-worker --tail 100
+
+Live worker logs:
+docker compose logs -f airflow-worker
+
+Stop:
+docker compose stop
+
+Start again:
+docker compose start
+
+Remove containers:
+docker compose down
