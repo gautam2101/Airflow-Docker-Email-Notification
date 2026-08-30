@@ -1,0 +1,18 @@
+@"
+# Airflow generated files
+logs/
+dags/__pycache__/
+__pycache__/
+*.pyc
+
+# Environment / secrets
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+"@ | Set-Content .gitignore

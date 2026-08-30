@@ -12,7 +12,7 @@ def failing_task():
 email_failure_notifier = SmtpNotifier(
     smtp_conn_id="smtp_default",
     from_email="er.kumargaut@gmail.com",
-    to=["gautam2001.007@gmail.com", "deep.rajcr16@gmail.com"],
+    to=["gautam2001.09000007@gmail.com", "dyuiuihb.ragjkjkjcr16321@gmail.com"],
     subject="Airflow Task Failed",
     html_content="""
     <h3>Airflow Task Failure</h3>
