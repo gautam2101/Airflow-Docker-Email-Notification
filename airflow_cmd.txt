@@ -1,4 +1,4 @@
-# AIRFLOW DOCKER - POWERSHELL COMMANDS CHEAT SHEET
+# AIRFLOW DOCKER - POWERSHELL COMMANDS
 
 This file contains the important PowerShell commands used to install,
 run, configure, test, troubleshoot, and push the Apache Airflow Docker
